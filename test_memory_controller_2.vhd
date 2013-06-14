@@ -88,7 +88,9 @@ signal change_ram_block1024: std_logic;
 signal change_ram_block728: std_logic;
 signal change_ram_block288: std_logic;	
 
-signal ramI_address: std_logic_vector (9 downto 0);																	
+signal ramI_address: std_logic_vector (9 downto 0);
+signal ram6I_address: std_logic_vector (9 downto 0);																	
+
 signal ramI_address1024: std_logic_vector (15 downto 0);
 signal ramI_address728: std_logic_vector (15 downto 0);
 signal ramI_address288: std_logic_vector (15 downto 0);
@@ -131,6 +133,7 @@ signal enable_ram5_frame2 : std_logic;
 
 signal enable_ram6_frame1 : std_logic;
 signal enable_ram6_frame2 : std_logic;
+signal enable_ram6 : std_logic;
 
 signal clk_write_ram : std_logic;
 
@@ -146,15 +149,16 @@ signal pipeO_data_ram2_frame1 : std_logic_vector (15 downto 0);
 signal pipeO_data_ram3_frame1 : std_logic_vector (15 downto 0);
 signal pipeO_data_ram4_frame1 : std_logic_vector (15 downto 0);
 signal pipeO_data_ram5_frame1 : std_logic_vector (15 downto 0);
-signal pipeO_data_ram6_frame1 : std_logic_vector (15 downto 0);
+--signal pipeO_data_ram6_frame1 : std_logic_vector (15 downto 0);
 
 signal pipeO_data_ram1_frame2 : std_logic_vector (15 downto 0);
 signal pipeO_data_ram2_frame2 : std_logic_vector (15 downto 0);
 signal pipeO_data_ram3_frame2 : std_logic_vector (15 downto 0);
 signal pipeO_data_ram4_frame2 : std_logic_vector (15 downto 0);
 signal pipeO_data_ram5_frame2 : std_logic_vector (15 downto 0);
-signal pipeO_data_ram6_frame2 : std_logic_vector (15 downto 0);
-
+--signal pipeO_data_ram6_frame2 : std_logic_vector (15 downto 0);
+signal pipeO_data_ram6 : std_logic_vector (15 downto 0);
+ 
 begin
 -----------------------------------------------------------------------
 -------- FSM to control the frame where we want to write  -------------
@@ -555,14 +559,14 @@ with select_ram_block_to_read select
 							pipeO_data_ram3_frame1 when "0000000000000100",
 							pipeO_data_ram4_frame1 when "0000000000001000",
 							pipeO_data_ram5_frame1 when "0000000000010000",
-							pipeO_data_ram6_frame1 when "0000000000100000",
+							--pipeO_data_ram6_frame1 when "0000000000100000",
 							pipeO_data_ram1_frame2 when "0000000001000000",
 							pipeO_data_ram2_frame2 when "0000000010000000",
 							pipeO_data_ram3_frame2 when "0000000100000000",
 							pipeO_data_ram4_frame2 when "0000001000000000",
 							pipeO_data_ram5_frame2 when "0000010000000000",
-							pipeO_data_ram6_frame2 when "0000100000000000",
-							"0101010101010101" when others; -- this is useful only for debug
+							--pipeO_data_ram6_frame2 when "0000100000000000",
+							pipeO_data_ram6 when others; 
 --- six pipes multiplexed on the 12 blocks ----------------						
 --with select_ram_block_to_read select
 --	pipeO_data_1 <= 	pipeO_data_ram1_frame1 when "0100000000000000",
@@ -629,15 +633,15 @@ ram5_frame1 : RAMB16_S18_S18 port map (
 		ADDRB => pipeO_count (9 downto 0) ,DIB => x"0000", DIPB => "00",
 		DOB => pipeO_data_ram5_frame1 
 	);
-
-ram6_frame1 : RAMB16_S18_S18 port map (
-		CLKA => clk_write_ram, SSRA => '0', ENA => '1', WEA => enable_ram6_frame1,
-		ADDRA => ramI_address ,DIA => data_sync, DIPA => "00",
-		CLKB => clk_read_ram, SSRB => '0', ENB => '1', WEB => '0',
-		ADDRB => pipeO_count (9 downto 0) ,DIB => x"0000", DIPB => "00",
-		DOB => pipeO_data_ram6_frame1 
-	);	
-
+-- <14062013 work around ram 6
+--ram6_frame1 : RAMB16_S18_S18 port map (
+--		CLKA => clk_write_ram, SSRA => '0', ENA => '1', WEA => enable_ram6_frame1,
+--		ADDRA => ramI_address ,DIA => data_sync, DIPA => "00",
+--		CLKB => clk_read_ram, SSRB => '0', ENB => '1', WEB => '0',
+--		ADDRB => pipeO_count (9 downto 0) ,DIB => x"0000", DIPB => "00",
+--		DOB => pipeO_data_ram6_frame1 
+--	);	
+-- 14062013 work around ram 6>
 ram1_frame2 : RAMB16_S18_S18 port map (
 		CLKA => clk_write_ram, SSRA => '0', ENA => '1', WEA => enable_ram1_frame2,
 		ADDRA => ramI_address ,DIA => data_sync, DIPA => "00",
@@ -678,13 +682,26 @@ ram5_frame2 : RAMB16_S18_S18 port map (
 		DOB => pipeO_data_ram5_frame2 
 	);	
 
-ram6_frame2 : RAMB16_S18_S18 port map (
-		CLKA => clk_write_ram, SSRA => '0', ENA => '1', WEA => enable_ram6_frame2,
-		ADDRA => ramI_address ,DIA => data_sync, DIPA => "00",
+-- <14062013 work around ram 6 
+--ram6_frame2 : RAMB16_S18_S18 port map (
+--		CLKA => clk_write_ram, SSRA => '0', ENA => '1', WEA => enable_ram6_frame2,
+--		ADDRA => ramI_address ,DIA => data_sync, DIPA => "00",
+--		CLKB => clk_read_ram, SSRB => '0', ENB => '1', WEB => '0',
+--		ADDRB => pipeO_count (9 downto 0) ,DIB => x"0000", DIPB => "00",
+--		DOB => pipeO_data_ram6_frame2 
+--	);	
+
+
+enable_ram6 <= enable_ram6_frame1 or enable_ram6_frame2;
+ram6I_address <= enable_ram6_frame2 & ramI_address(8 downto 0);
+
+ram6 : RAMB16_S18_S18 port map (
+		CLKA => clk_write_ram, SSRA => '0', ENA => '1', WEA => enable_ram6,
+		ADDRA => ram6I_address ,DIA => data_sync, DIPA => "00",
 		CLKB => clk_read_ram, SSRB => '0', ENB => '1', WEB => '0',
 		ADDRB => pipeO_count (9 downto 0) ,DIB => x"0000", DIPB => "00",
-		DOB => pipeO_data_ram6_frame2 
-	);	
-
+		DOB => pipeO_data_ram6 
+	);
+-- 14062013 work around ram 6>	
 end Behavioral;
 
